@@ -1,0 +1,6 @@
+{
+  "name": "BESTIE Keyboard",
+  "description": "Modern, beautiful Android keyboard with Sinhala and English layouts, emojis, clipboard history, themes, and sound/vibration feedback.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

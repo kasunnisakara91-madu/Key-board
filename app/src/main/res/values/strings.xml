@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">BESTIE Keyboard</string>
+    <string name="ime_name">BESTIE Keyboard</string>
+    <string name="subtype_en_us">English (US)</string>
+    <string name="subtype_si_lk">Sinhala (සිංහල)</string>
+
+    <!-- Onboarding & Navigation -->
+    <string name="welcome_title">Welcome to BESTIE Keyboard</string>
+    <string name="welcome_subtitle">Fast, stylish, and privacy-focused keyboard supporting English and Sinhala with smart emojis and offline clipboard.</string>
+    <string name="step_enable_title">1. Enable Keyboard</string>
+    <string name="step_enable_desc">Turn on BESTIE Keyboard in your device Language &amp; Input settings.</string>
+    <string name="btn_enable">Enable in Settings</string>
+    <string name="step_select_title">2. Select Keyboard</string>
+    <string name="step_select_desc">Switch your active input method to BESTIE Keyboard.</string>
+    <string name="btn_select">Choose BESTIE</string>
+    <string name="status_enabled">Enabled</string>
+    <string name="status_not_enabled">Not Enabled</string>
+    <string name="status_selected">Active Default Keyboard</string>
+    <string name="status_not_selected">Not Selected</string>
+    <string name="ready_title">You\'re all set!</string>
+    <string name="ready_desc">BESTIE Keyboard is active. Try the live preview below or customize your themes.</string>
+
+    <!-- Tabs & Screens -->
+    <string name="nav_home">Home</string>
+    <string name="nav_themes">Themes</string>
+    <string name="nav_preview">Preview</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_clipboard">Clipboard</string>
+    <string name="nav_about">About</string>
+
+    <!-- Themes -->
+    <string name="theme_title">Keyboard Themes</string>
+    <string name="theme_bestie_violet">Bestie Violet (Signature)</string>
+    <string name="theme_dark">Midnight Dark (AMOLED)</string>
+    <string name="theme_light">Pure Light</string>
+    <string name="theme_sunset">Sunset Coral</string>
+    <string name="theme_ocean">Ocean Breeze</string>
+    <string name="theme_emerald">Emerald Forest</string>
+    <string name="theme_cyberpunk">Neon Cyberpunk</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Keyboard Settings</string>
+    <string name="pref_haptic_title">Vibration on Keypress</string>
+    <string name="pref_haptic_summary">Provide tactile haptic feedback when tapping keys</string>
+    <string name="pref_sound_title">Sound on Keypress</string>
+    <string name="pref_sound_summary">Play subtle click sound on keypress</string>
+    <string name="pref_suggestions_title">Word Suggestions</string>
+    <string name="pref_suggestions_summary">Show candidate word suggestions in top bar</string>
+    <string name="pref_autocap_title">Auto-Capitalization</string>
+    <string name="pref_autocap_summary">Automatically capitalize the first letter of sentences</string>
+    <string name="pref_double_space_title">Double-Space Period</string>
+    <string name="pref_double_space_summary">Double tapping spacebar inserts a period followed by a space</string>
+    <string name="pref_height_title">Keyboard Height</string>
+    <string name="pref_height_compact">Compact (220dp)</string>
+    <string name="pref_height_normal">Normal (260dp)</string>
+    <string name="pref_height_tall">Tall (300dp)</string>
+    <string name="pref_key_borders_title">Key Borders</string>
+    <string name="pref_key_borders_summary">Display visible outline borders around individual keys</string>
+
+    <!-- Languages -->
+    <string name="lang_title">Language &amp; Layouts</string>
+    <string name="lang_english">English (QWERTY)</string>
+    <string name="lang_sinhala">Sinhala (සිංහල)</string>
+    <string name="lang_quick_switch">Quick Language Switch</string>
+    <string name="lang_quick_switch_desc">Easily switch between English and Sinhala with the globe key.</string>
+
+    <!-- Clipboard -->
+    <string name="clipboard_title">Device Clipboard History</string>
+    <string name="clipboard_empty">No clipboard items saved yet. When you copy text, it will appear here for fast pasting.</string>
+    <string name="clipboard_clear_all">Clear All History</string>
+    <string name="clipboard_item_deleted">Item deleted</string>
+    <string name="clipboard_cleared">Clipboard history cleared</string>
+    <string name="clipboard_add_sample">Add Sample Snippet</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Privacy &amp; Security</string>
+    <string name="privacy_statement">BESTIE Keyboard runs 100% offline on your device. We do not collect, store, transmit, or monitor any keystrokes, passwords, or personal messages. Zero network tracking, zero analytics, zero external servers.</string>
+
+    <!-- About -->
+    <string name="about_title">About BESTIE Keyboard</string>
+    <string name="about_version">Version 1.0.0 (Release Build)</string>
+    <string name="about_dev">Crafted with Material Design 3 and Android InputMethodService.</string>
+</resources>
