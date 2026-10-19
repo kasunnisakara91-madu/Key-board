@@ -70,6 +70,9 @@ fun BestieKeyboardView(
     onCopy: () -> Unit = {},
     onPaste: () -> Unit = {},
     onTextStyleChange: (TextStyleMode) -> Unit = {},
+    voiceState: VoiceState = VoiceState.Idle,
+    onStartVoiceListening: (KeyboardLanguage) -> Unit = {},
+    onStopVoiceListening: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val theme = KeyboardThemes.getById(settings.themeId)
@@ -78,6 +81,7 @@ fun BestieKeyboardView(
     var shiftState by remember { mutableStateOf(ShiftState.OFF) }
     var activeEmojiCategory by remember { mutableStateOf(EmojiCategory.RECENT) }
     var currentTextStyle by remember { mutableStateOf(settings.textStyleMode) }
+    var voiceLanguage by remember { mutableStateOf(settings.currentLanguage) }
 
     Box(
         modifier = modifier
@@ -118,6 +122,15 @@ fun BestieKeyboardView(
                 textStyle = currentTextStyle,
                 theme = theme,
                 onLanguageToggle = onLanguageSwitch,
+                onMicClick = {
+                    if (currentMode == KeyboardMode.VOICE_INPUT) {
+                        onStopVoiceListening()
+                        currentMode = KeyboardMode.LETTERS
+                    } else {
+                        currentMode = KeyboardMode.VOICE_INPUT
+                        onStartVoiceListening(voiceLanguage)
+                    }
+                },
                 onEmojiClick = {
                     currentMode = if (currentMode == KeyboardMode.EMOJIS) KeyboardMode.LETTERS else KeyboardMode.EMOJIS
                 },
@@ -276,6 +289,30 @@ fun BestieKeyboardView(
                         )
                     }
 
+                    KeyboardMode.VOICE_INPUT -> {
+                        VoiceInputPanel(
+                            theme = theme,
+                            currentLanguage = voiceLanguage,
+                            voiceState = voiceState,
+                            onLanguageChange = { newLang ->
+                                voiceLanguage = newLang
+                                onStartVoiceListening(newLang)
+                            },
+                            onStartListening = {
+                                onStartVoiceListening(voiceLanguage)
+                            },
+                            onStopListening = onStopVoiceListening,
+                            onInsertText = { text ->
+                                onKeyPress("$text ")
+                                currentMode = KeyboardMode.LETTERS
+                            },
+                            onClose = {
+                                onStopVoiceListening()
+                                currentMode = KeyboardMode.LETTERS
+                            }
+                        )
+                    }
+
                     else -> {
                         currentMode = KeyboardMode.LETTERS
                     }
@@ -295,6 +332,7 @@ private fun TopRoundActionRibbon(
     textStyle: TextStyleMode,
     theme: KeyboardThemeData,
     onLanguageToggle: () -> Unit,
+    onMicClick: () -> Unit,
     onEmojiClick: () -> Unit,
     onTextStyleClick: () -> Unit,
     onClipboardClick: () -> Unit,
@@ -310,7 +348,7 @@ private fun TopRoundActionRibbon(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Sinhala toggle circle button: 'සිං'
+        // 1. Sinhala toggle circle button: 'සිං' / 'EN'
         RoundActionButton(
             text = if (language == KeyboardLanguage.SINHALA) "සිං" else "EN",
             highlighted = language == KeyboardLanguage.SINHALA,
@@ -319,7 +357,16 @@ private fun TopRoundActionRibbon(
             testTag = "btn_round_sinhala"
         )
 
-        // 2. Emoji face button
+        // 2. Microphone Voice Typing button: '🎤' (Sinhala & English)
+        RoundActionButton(
+            icon = Icons.Default.Mic,
+            highlighted = activeMode == KeyboardMode.VOICE_INPUT,
+            borderColor = Color(0xFF00E676),
+            onClick = onMicClick,
+            testTag = "btn_round_mic"
+        )
+
+        // 3. Emoji face button
         RoundActionButton(
             icon = Icons.Default.Mood,
             highlighted = activeMode == KeyboardMode.EMOJIS,
@@ -328,7 +375,7 @@ private fun TopRoundActionRibbon(
             testTag = "btn_round_emoji"
         )
 
-        // 3. Fancy Font Styler: 'Ἂά'
+        // 4. Fancy Font Styler: 'Ἂά'
         RoundActionButton(
             text = "Ἂά",
             highlighted = textStyle != TextStyleMode.NORMAL,
@@ -337,22 +384,13 @@ private fun TopRoundActionRibbon(
             testTag = "btn_round_font"
         )
 
-        // 4. Clipboard button
+        // 5. Clipboard button
         RoundActionButton(
             icon = Icons.Default.ContentPaste,
             highlighted = activeMode == KeyboardMode.CLIPBOARD,
             borderColor = theme.keyBorderColor,
             onClick = onClipboardClick,
             testTag = "btn_round_clipboard"
-        )
-
-        // 5. 'Aa' Case / Font size button
-        RoundActionButton(
-            text = "Aa",
-            highlighted = false,
-            borderColor = theme.keyBorderColor,
-            onClick = onFontSizeClick,
-            testTag = "btn_round_case"
         )
 
         // 6. Text Editor / Cursor Mover: '[|]'
@@ -1217,5 +1255,155 @@ private fun SuggestionPill(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+}
+
+// -------------------------------------------------------------
+// VOICE INPUT PANEL (Sinhala & English Speech-to-Text)
+// -------------------------------------------------------------
+@Composable
+private fun VoiceInputPanel(
+    theme: KeyboardThemeData,
+    currentLanguage: KeyboardLanguage,
+    voiceState: VoiceState,
+    onLanguageChange: (KeyboardLanguage) -> Unit,
+    onStartListening: () -> Unit,
+    onStopListening: () -> Unit,
+    onInsertText: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    val isListening = voiceState is VoiceState.Listening
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Language Toggle Bar
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Voice Typing (හඬින් ලියන්න)",
+                color = Color(0xFF00E676),
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (currentLanguage == KeyboardLanguage.SINHALA) Color(0xFF00E676) else Color.Black.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, if (currentLanguage == KeyboardLanguage.SINHALA) Color(0xFF00E676) else Color.Gray),
+                    modifier = Modifier.clickable { onLanguageChange(KeyboardLanguage.SINHALA) }
+                ) {
+                    Text(
+                        text = "🇱🇰 සිංහල",
+                        color = if (currentLanguage == KeyboardLanguage.SINHALA) Color.Black else Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (currentLanguage == KeyboardLanguage.ENGLISH) Color(0xFF00E676) else Color.Black.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, if (currentLanguage == KeyboardLanguage.ENGLISH) Color(0xFF00E676) else Color.Gray),
+                    modifier = Modifier.clickable { onLanguageChange(KeyboardLanguage.ENGLISH) }
+                ) {
+                    Text(
+                        text = "🇺🇸 English",
+                        color = if (currentLanguage == KeyboardLanguage.ENGLISH) Color.Black else Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+
+        // Center Pulsing Mic Button & Status
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(vertical = 4.dp)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(68.dp)
+                    .border(
+                        BorderStroke(
+                            width = if (isListening) 2.5.dp else 1.2.dp,
+                            color = if (isListening) Color(0xFF00E676) else Color.LightGray
+                        ),
+                        shape = CircleShape
+                    ),
+                shape = CircleShape,
+                color = if (isListening) Color(0xFF00E676).copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.6f),
+                shadowElevation = if (isListening) 6.dp else 2.dp,
+                onClick = {
+                    if (isListening) onStopListening() else onStartListening()
+                }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (isListening) Icons.Default.Mic else Icons.Default.MicNone,
+                        contentDescription = "Microphone",
+                        tint = if (isListening) Color(0xFF00E676) else Color.White,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            val statusText = when (voiceState) {
+                is VoiceState.Listening -> if (currentLanguage == KeyboardLanguage.SINHALA)
+                    "සිංහලෙන් කතා කරන්න... (Listening in Sinhala)" else "Speak now in English..."
+                is VoiceState.Recognized -> "හඳුනාගත් පෙළ: \"${voiceState.text}\""
+                is VoiceState.Error -> voiceState.message
+                is VoiceState.Idle -> if (currentLanguage == KeyboardLanguage.SINHALA)
+                    "මයික්‍රෆෝනය ඔබා සිංහලෙන් කතා කරන්න" else "Tap microphone to speak in English"
+            }
+
+            Text(
+                text = statusText,
+                color = if (voiceState is VoiceState.Recognized) Color(0xFF00E676) else Color.White.copy(alpha = 0.85f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (voiceState is VoiceState.Recognized) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Button(
+                    onClick = { onInsertText(voiceState.text) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E676)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(34.dp)
+                ) {
+                    Text("Insert (ඇතුළත් කරන්න)", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // Bottom Bar: Close
+        Button(
+            onClick = onClose,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(36.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = theme.keyBackgroundColor),
+            border = BorderStroke(1.2.dp, theme.keyBorderColor)
+        ) {
+            Text("Back to Keyboard", color = Color.White, fontSize = 12.sp)
+        }
     }
 }

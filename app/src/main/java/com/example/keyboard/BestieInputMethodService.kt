@@ -39,6 +39,7 @@ class BestieInputMethodService : InputMethodService(),
 
     private lateinit var keyboardPrefs: KeyboardPreferences
     private lateinit var clipboardHelper: ClipboardManagerHelper
+    private lateinit var voiceInputManager: VoiceInputManager
     private val suggestionEngine = WordSuggestionEngine()
 
     private var audioManager: AudioManager? = null
@@ -59,6 +60,7 @@ class BestieInputMethodService : InputMethodService(),
 
         keyboardPrefs = KeyboardPreferences(this)
         clipboardHelper = ClipboardManagerHelper(this)
+        voiceInputManager = VoiceInputManager(this)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
 
@@ -82,12 +84,26 @@ class BestieInputMethodService : InputMethodService(),
                 val currentSuggestions by suggestionsState
                 val currentClips by clipboardListState
                 val currentImeOptions by imeOptionsState
+                val voiceState by voiceInputManager.voiceState.collectAsState()
 
                 BestieKeyboardView(
                     settings = currentSettings,
                     imeOptions = currentImeOptions,
                     suggestions = currentSuggestions,
                     clipboardItems = currentClips,
+                    voiceState = voiceState,
+                    onStartVoiceListening = { lang ->
+                        voiceInputManager.startListening(
+                            language = lang,
+                            onResult = { text ->
+                                currentInputConnection?.commitText("$text ", 1)
+                            },
+                            onError = { /* handled in voiceState */ }
+                        )
+                    },
+                    onStopVoiceListening = {
+                        voiceInputManager.stopListening()
+                    },
                     onKeyPress = { text -> handleCharacter(text) },
                     onBackspace = { handleBackspace() },
                     onEnter = { handleEnter() },
@@ -156,6 +172,7 @@ class BestieInputMethodService : InputMethodService(),
     }
 
     override fun onDestroy() {
+        voiceInputManager.stopListening()
         super.onDestroy()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         appViewModelStore.clear()

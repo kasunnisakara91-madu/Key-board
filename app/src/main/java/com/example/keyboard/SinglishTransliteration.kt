@@ -2,7 +2,6 @@ package com.example.keyboard
 
 object SinglishTransliteration {
 
-    // Key-to-Sinhala character mapping corresponding to the user's keyboard screenshot
     val keyToSinhalaMap = mapOf(
         'q' to "ද",
         'w' to "ව",
@@ -32,13 +31,17 @@ object SinglishTransliteration {
         'm' to "ම"
     )
 
-    // Common Singlish word transliteration dictionary
+    // Comprehensive dictionary of common Singlish words
     private val singlishDict = mapOf(
         "mama" to "මම",
         "oya" to "ඔයා",
+        "oyata" to "ඔයාට",
+        "mata" to "මට",
         "api" to "අපි",
+        "apita" to "අපිට",
         "suba" to "සුබ",
         "subha" to "සුබ",
+        "dawasak" to "දවසක්",
         "kohomada" to "කොහොමද",
         "aayubowan" to "ආයුබෝවන්",
         "ayubowan" to "ආයුබෝවන්",
@@ -64,9 +67,11 @@ object SinglishTransliteration {
         "poddak" to "පොඩ්ඩක්",
         "gedara" to "ගෙදර",
         "wada" to "වැඩ",
+        "veda" to "වැඩ",
         "pasala" to "පාසල",
         "adarai" to "ආදරෙයි",
         "satutui" to "සතුටුයි",
+        "sathutui" to "සතුටුයි",
         "lassana" to "ලස්සන",
         "yaluwa" to "යාළුවා",
         "bestie" to "බෙස්ටී",
@@ -74,12 +79,69 @@ object SinglishTransliteration {
         "monawada" to "මොනවද",
         "kiyanna" to "කියන්න",
         "balanna" to "බලන්න",
-        "innawa" to "ඉන්නවා"
+        "innawa" to "ඉන්නවා",
+        "hithanna" to "හිතන්න",
+        "kaala" to "කාලා",
+        "beela" to "බීලා",
+        "nidi" to "නිදි",
+        "harima" to "හරිම",
+        "puluwan" to "පුළුවන්",
+        "bae" to "බෑ",
+        "ba" to "බෑ",
+        "ehemai" to "එහෙමයි",
+        "oyath" to "ඔයාත්",
+        "math" to "මාත්",
+        "kiyaddi" to "කියද්දි",
+        "sinhala" to "සිංහල",
+        "english" to "ඉංග්‍රීසි"
     )
 
     fun transliterateWord(input: String): String? {
         val lower = input.lowercase().trim()
-        return singlishDict[lower]
+        val dictMatch = singlishDict[lower]
+        if (dictMatch != null) return dictMatch
+
+        // Algorithmic phonetic transliteration for unlisted words
+        return phoneticTransliterate(lower)
+    }
+
+    private fun phoneticTransliterate(input: String): String? {
+        if (input.length < 2) return null
+        val sb = StringBuilder()
+        var i = 0
+        while (i < input.length) {
+            // Check two-letter consonants first: th, ch, sh
+            var consumed = false
+            if (i + 1 < input.length) {
+                val pair = input.substring(i, i + 2)
+                val cSinhala = when (pair) {
+                    "th" -> "ත"
+                    "ch" -> "ච"
+                    "sh" -> "ශ"
+                    "dh" -> "ධ"
+                    "ph" -> "ඵ"
+                    "bh" -> "භ"
+                    else -> null
+                }
+                if (cSinhala != null) {
+                    sb.append(cSinhala)
+                    i += 2
+                    consumed = true
+                }
+            }
+
+            if (!consumed) {
+                val ch = input[i]
+                val sChar = keyToSinhalaMap[ch]
+                if (sChar != null) {
+                    sb.append(sChar)
+                } else {
+                    sb.append(ch)
+                }
+                i++
+            }
+        }
+        return if (sb.isNotEmpty()) sb.toString() else null
     }
 
     fun getSinhalaCharForEnglish(ch: Char): String {

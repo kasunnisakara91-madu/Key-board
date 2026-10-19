@@ -30,7 +30,8 @@ enum class KeyboardMode {
     EMOJIS,
     CLIPBOARD,
     TEXT_EDIT,
-    FONT_STYLES
+    FONT_STYLES,
+    VOICE_INPUT
 }
 
 enum class ShiftState {

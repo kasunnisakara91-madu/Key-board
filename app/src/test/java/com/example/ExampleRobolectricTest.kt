@@ -85,4 +85,15 @@ class ExampleRobolectricTest {
         assertEquals("ක", SinglishTransliteration.getSinhalaCharForEnglish('k'))
         assertEquals("මම", SinglishTransliteration.transliterateWord("mama"))
     }
+
+    @Test
+    fun `test singlish transliteration and voice manager`() {
+        assertEquals("සිංහල", SinglishTransliteration.transliterateWord("sinhala"))
+        assertEquals("කියද්දි", SinglishTransliteration.transliterateWord("kiyaddi"))
+        assertEquals("ඔයා", SinglishTransliteration.transliterateWord("oya"))
+
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val voiceManager = VoiceInputManager(context)
+        assertEquals(VoiceState.Idle, voiceManager.voiceState.value)
+    }
 }
